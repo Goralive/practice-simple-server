@@ -13,6 +13,8 @@ import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static org.webserver.endpoints.ENDPOINT.APP_TXTS;
+
 
 public class HttpServerImp implements IServer {
     private final Logger logger = LoggerFactory.getLogger(HttpServerImp.class);
@@ -39,14 +41,12 @@ public class HttpServerImp implements IServer {
     }
 
     private HttpContext handlePostTxts() {
-        String url = "/app/txts";
         HttpHandler httpHandler =
                 exchange -> {
                     try {
                         logger.info("Processing: {} request to {}", exchange.getRequestMethod(), exchange.getRequestURI());
                         String requestBody = readToString(exchange.getRequestBody());
                         logger.info("Body from request {}", requestBody);
-
                         Optional<String> key = keys(data, requestBody).findFirst();
                         if (key.isPresent()) {
                             String response = "The data is already in the map. The key is " + key.get();
@@ -75,8 +75,8 @@ public class HttpServerImp implements IServer {
                         logger.error("Error during handle request {}", e.toString());
                     }
                 };
-        logger.info("Handle request for endpoint {}", url);
-        return httpServer.createContext(url, httpHandler);
+        logger.info("Handle request for endpoint {}", APP_TXTS.getURL());
+        return httpServer.createContext(APP_TXTS.getURL(), httpHandler);
     }
 
     private String readToString(InputStream stream) {
