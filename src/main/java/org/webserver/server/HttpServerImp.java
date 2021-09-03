@@ -106,8 +106,12 @@ public class HttpServerImp implements IServer {
     }
 
     private void deleteDataByKey(HttpExchange exchange, String key) throws IOException {
-        data.remove(key);
-        serverResponse(exchange, 200, String.format("Data was deleted on key %s", key));
+        if (data.containsKey(key)) {
+            data.remove(key);
+            serverResponse(exchange, 200, String.format("Data was deleted on key %s", key));
+        } else {
+            serverResponse(exchange, 400, "No data for this key");
+        }
     }
 
     private void serverResponse(HttpExchange exchange, int statusCode, String response) throws IOException {
@@ -119,14 +123,11 @@ public class HttpServerImp implements IServer {
 
     private void saveData(HttpExchange exchange, String requestBody) throws IOException {
         logger.info("Body from request {}", requestBody);
-        Optional<String> key = keys(data, requestBody).findFirst();
-        if (key.isPresent()) {
-            String response = "The data is already in the map. The key is " + key.get();
-            serverResponse(exchange, 200, response);
+        if (data.containsValue(requestBody)) {
+            serverResponse(exchange, 200, String.format("The data was already added. The key is %d", requestBody.hashCode()));
         } else if (requestBody != null && !requestBody.trim().isEmpty()) {
             // Can be changed to UUID.randomUUID().toString();
-            String uuid = Integer.toString(id);
-            id++;
+            String uuid = String.format("%d", requestBody.hashCode());
             data.put(uuid, requestBody);
             logger.info("Saved data {}\nWith key {}", requestBody, uuid);
             String dataWasSavedResponse = "Data was saved with key " + uuid;
